@@ -1,0 +1,56 @@
+#!/usr/local/bin/python
+
+#Here are the imports that I needed.
+import threading
+import string
+import os
+import mimetypes
+from socket import *
+
+#myThread inherits from threading.Thread
+class myThread (threading.Thread):
+   # __init__ is the constructor
+   # self is the object
+   # all instance methods in the class will have self
+   # as the first parameter
+   def __init__(self, connectionSocket):
+       threading.Thread.__init__(self)
+      #self causes connectionSocket to be a data member
+       self.connectionSocket = connectionSocket
+
+   #thread execution starts here
+   def run(self):
+       while 1:
+          request = self.connectionSocket.recv(1024)
+          print(request)
+          if request ==b'quit': break
+          http_response = """\
+                  HTTP/1.1 200 OK
+
+                  Hello, World!
+                  """
+          self.connectionSocket.send(http_response.encode()) 
+          break
+          self.connectionSocket.close()
+
+   def findGet(requestLine):
+       cat = requestLine.find("GET")
+       if cat > -1: 
+           return cat
+       return -1
+def main():
+   serverPort = 15020
+   serverSocket = socket(AF_INET, SOCK_STREAM)
+   try:
+       serverSocket.bind((gethostname(), serverPort))
+   except OSError:
+       serverSocket.bind((gethostname(), serverPort + 1))
+   serverSocket.listen(1)
+   print("The server is ready to receive")
+   while 1:
+       (connectionSocket, addr) = serverSocket.accept()
+       t = myThread(connectionSocket)
+       t.start()
+
+
+main();
